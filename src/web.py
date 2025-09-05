@@ -1,8 +1,5 @@
 from threading import Thread
-import signal
 import flask
-import time
-import os
 
 app = flask.Flask(__name__)
 

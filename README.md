@@ -5,7 +5,7 @@
 
 Launches minecraft in under 20 seconds from initial input.
 
-## Install
+## Build & Install
 
 ### Linux/macOS
 
@@ -18,3 +18,7 @@ curl -sSL https://raw.githubusercontent.com/Omena0/QuickMC/refs/heads/master/set
 ```powershell
 iwr -useb https://raw.githubusercontent.com/Omena0/QuickMC/refs/heads/master/setup.cmd | iex
 ```
+
+## Dev install
+
+Just run `install.sh` in the `setup` directory.

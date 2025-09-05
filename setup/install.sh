@@ -1,3 +1,9 @@
+#!/bin/bash
+
+# QuickMC Installation Script
+# This script installs only the necessary runtime files for QuickMC
+# It does NOT copy the entire repository - only the compiled executable and required files
+
 # Build
 python -m nuitka --standalone --windows-console-mode=force \
  --product-name="QuickMC" --product-version=1.0.0 --file-description="The QuickMC launcher" \
@@ -16,8 +22,14 @@ mkdir -p ~/QuickMC/files
 mkdir -p ~/QuickMC/data
 mkdir -p ~/QuickMC/.minecraft
 
-# Copy files
+# Copy runtime files (compiled executable and dependencies only)
 cp -r ../__build/main.dist/* ~/QuickMC/files/
+
+# Clean up any development files that might have been included
+rm -f ~/QuickMC/files/*.py 2>/dev/null || true
+rm -f ~/QuickMC/files/*.pyc 2>/dev/null || true
+rm -rf ~/QuickMC/files/__pycache__ 2>/dev/null || true
+rm -rf ~/QuickMC/files/.git* 2>/dev/null || true
 
 # Copy config
 cp ../config.json ~/QuickMC/data/
@@ -35,7 +47,4 @@ sed -i "s|/home/%USER%|$HOME|g" ~/.local/share/applications/quickmc.desktop
 
 chmod +x ~/.local/share/applications/quickmc.desktop
 
-echo "QuickMC installed successfully!"
-echo "You can now find QuickMC in your applications menu."
-echo "QuickMC will launch with console output for better debugging."
-
+echo "Done!"

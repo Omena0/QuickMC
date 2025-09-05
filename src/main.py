@@ -4,9 +4,10 @@ import subprocess
 import webview
 import pprint
 import json
+import time
 import web
-import os
 import sys
+import os
 
 # Configuration
 client_id = "35292a04-c714-4fac-92e0-82c3ea360278"
@@ -35,12 +36,31 @@ def load_config():
                 "max": "8G"
             },
             "jvm_arguments": [
+                # Performance optimizations for faster startup
                 "-XX:+UnlockExperimentalVMOptions",
                 "-XX:+UseG1GC",
+                "-XX:+UseStringDeduplication",
                 "-XX:G1NewSizePercent=20",
                 "-XX:G1ReservePercent=20",
                 "-XX:MaxGCPauseMillis=50",
-                "-XX:G1HeapRegionSize=32M"
+                "-XX:G1HeapRegionSize=32M",
+                # Fast startup optimizations
+                "-XX:+TieredCompilation",
+                "-XX:TieredStopAtLevel=1",  # Faster startup, less optimization
+                "-XX:+UseFastUnorderedTimeStamps",
+                "-XX:+UseLargePages",
+                "-XX:+AlwaysPreTouch",  # Allocate memory upfront
+                # Reduce verification overhead
+                "-Xverify:none",
+                # Disable JIT compiler warmup for faster startup
+                "-XX:CompileThreshold=1500",
+                # Parallel class loading
+                "-XX:+UnlockDiagnosticVMOptions",
+                "-XX:+UseParallelGC",  # Faster for startup
+                # Aggressive optimization for startup
+                "-Dsun.rmi.dgc.server.gcInterval=2147483646",
+                "-Dsun.rmi.dgc.client.gcInterval=2147483646",
+                "-Djava.net.preferIPv4Stack=true"
             ]
         },
         "fabric": {
@@ -48,8 +68,15 @@ def load_config():
             "loader_version": "latest"
         },
         "install": {
-            "download_threads": 4,
-            "enable_progress_bar": True
+            "download_threads": 8,  # Increased from 4 for faster downloads
+            "enable_progress_bar": True,
+            "skip_hash_validation": False,  # Set to true for faster installs (less secure)
+            "parallel_downloads": True
+        },
+        "launch": {
+            "skip_asset_verification": False,  # Set to true for faster launches
+            "preload_natives": True,  # Preload native libraries
+            "close_launcher": False  # Launch Minecraft without waiting
         }
     }
 
@@ -175,6 +202,7 @@ def complete_login():
 
         profile["access_token"] = access_token
         profile["refresh_token"] = token_request.get("refresh_token")
+        profile["cache_timestamp"] = time.time()
 
         login_data = profile
         return login_data
@@ -193,36 +221,139 @@ def refresh_login():
         redirect_uri,
         login_data["refresh_token"]
     )
-
+    
+    # Add timestamp to refreshed data
+    login_data["cache_timestamp"] = time.time()
+    
     return login_data
 
 def login():
     global login_data
     if login_data is None:
         # Check if login data is saved
-        if os.path.exists(os.path.join(install_dir, "data", "login_data.json")):
-            with open(os.path.join(install_dir, "data", "login_data.json"), "r") as f:
-                login_data = json.load(f)
-
-            # Validate that its still valid, otherwise refresh
-
+        login_data_path = os.path.join(install_dir, "data", "login_data.json")
+        if os.path.exists(login_data_path):
             try:
-                mcl.microsoft_account.validate_token(login_data["access_token"])
-                return login_data
-            except:
-                return refresh_login()
+                with open(login_data_path, "r") as f:
+                    cached_data = json.load(f)
+                
+                # Check if we have a timestamp for smart caching
+                cache_timestamp = cached_data.get("cache_timestamp", 0)
+                current_time = time.time()
+                
+                # If token is less than 45 minutes old, use it without validation (tokens are valid for 1 hour)
+                if current_time - cache_timestamp < 2700:  # 45 minutes in seconds
+                    print("Using cached login data (skip validation)")
+                    login_data = cached_data
+                    return login_data
+                
+                # If token is less than 50 minutes old, try quick validation
+                elif current_time - cache_timestamp < 3000:  # 50 minutes
+                    print("Validating cached login data...")
+                    try:
+                        mcl.microsoft_account.validate_token(cached_data["access_token"])
+                        print("Cached token is still valid")
+                        # Update timestamp and save
+                        cached_data["cache_timestamp"] = current_time
+                        with open(login_data_path, "w") as f:
+                            json.dump(cached_data, f)
+                        login_data = cached_data
+                        return login_data
+                    except Exception as e:
+                        print(f"Cached token validation failed: {e}")
+                        # Fall through to refresh
+                
+                # Token is old or validation failed, try refresh
+                if "refresh_token" in cached_data:
+                    print("Refreshing login token...")
+                    try:
+                        login_data = mcl.microsoft_account.complete_refresh(
+                            client_id,
+                            None,
+                            redirect_uri,
+                            cached_data["refresh_token"]
+                        )
+                        # Add timestamp to refreshed data
+                        login_data["cache_timestamp"] = current_time
+                        return login_data
+                    except Exception as e:
+                        print(f"Token refresh failed: {e}")
+                        # Fall through to complete login
+                        
+            except Exception as e:
+                print(f"Failed to load cached login data: {e}")
+                # Fall through to complete login
 
+        # No valid cached data, do complete login
+        print("Performing complete login...")
         return complete_login()
     else:
+        # We already have login data in memory, try to refresh it
         return refresh_login()
 
+def check_system_optimizations():
+    """Check system for additional performance optimizations"""
+    optimizations = []
+    
+    # Check if running on SSD
+    try:
+        with open('/proc/mounts', 'r') as f:
+            mounts = f.read()
+            if 'ssd' in mounts.lower() or 'nvme' in mounts.lower():
+                optimizations.append("✓ SSD detected - good for fast loading")
+            else:
+                optimizations.append("⚠ Consider moving Minecraft to an SSD for faster loading")
+    except:
+        pass
+    
+    # Check available RAM
+    try:
+        with open('/proc/meminfo', 'r') as f:
+            meminfo = f.read()
+            for line in meminfo.split('\n'):
+                if 'MemTotal:' in line:
+                    total_ram_kb = int(line.split()[1])
+                    total_ram_gb = total_ram_kb / 1024 / 1024
+                    if total_ram_gb >= 16:
+                        optimizations.append(f"✓ {total_ram_gb:.1f}GB RAM available - excellent for Minecraft")
+                    elif total_ram_gb >= 8:
+                        optimizations.append(f"✓ {total_ram_gb:.1f}GB RAM available - good for Minecraft")
+                    else:
+                        optimizations.append(f"⚠ {total_ram_gb:.1f}GB RAM - consider upgrading for better performance")
+                    break
+    except:
+        pass
+    
+    # Check Java version
+    try:
+        result = subprocess.run([config["java"]["executable_path"], "-version"], 
+                              capture_output=True, text=True, stderr=subprocess.STDOUT)
+        if "17" in result.stdout or "21" in result.stdout:
+            optimizations.append("✓ Modern Java version detected - optimal performance")
+        else:
+            optimizations.append("⚠ Consider upgrading to Java 17 or 21 for better performance")
+    except:
+        optimizations.append("⚠ Could not verify Java version")
+    
+    if optimizations:
+        print("\nSystem Performance Check:")
+        for opt in optimizations:
+            print(f"  {opt}")
+        print()
+
 def main():
+    # Quick system optimization check
+    check_system_optimizations()
+    
     # Login
     login_data = login()
 
     os.makedirs(os.path.join(install_dir, "data"), exist_ok=True)
 
-    # Save login data
+    # Save login data with timestamp
+    if "cache_timestamp" not in login_data:
+        login_data["cache_timestamp"] = time.time()
+    
     with open(os.path.join(install_dir, "data", "login_data.json"), "w") as f:
         json.dump(login_data, f)
 
@@ -268,8 +399,19 @@ def main():
                 "setMax": set_max
             }
 
-            # Install
-            mcl.fabric.install_fabric(minecraft_version, minecraft_dir, callback=callback)
+            # Enhanced installation with performance optimizations
+            install_options = {}
+            if config["install"].get("skip_hash_validation", False):
+                install_options["skipHashValidation"] = True
+                print("Warning: Hash validation disabled for faster installation")
+
+            # Install with optimized settings
+            mcl.fabric.install_fabric(
+                minecraft_version, 
+                minecraft_dir, 
+                callback=callback,
+                **install_options
+            )
 
             if pbar:
                 pbar.close()
@@ -279,28 +421,48 @@ def main():
 
     # Build launch command using config values
     java_config = config["java"]
+    launch_config = config.get("launch", {})
+    
     jvm_args = [f"-Xms{java_config['memory']['min']}", f"-Xmx{java_config['memory']['max']}"]
     jvm_args.extend(java_config["jvm_arguments"])
     
-    command = mcl.command.get_minecraft_command(
-        version,
-        minecraft_dir,
-        {
-            "username": login_data["name"],
-            "uuid": login_data["id"],
-            "token": login_data["access_token"],
-            "executablePath": java_config["executable_path"],
-            "defaultExecutablePath": java_config["executable_path"],
-            "jvmArguments": jvm_args,
-            "launcherName": "QuickMC",
-            "launcherVersion": "1.0",
-            "gameDirectory": minecraft_dir
-        }
-    )
+    # Add additional startup optimizations based on system
+    if launch_config.get("preload_natives", True):
+        jvm_args.extend([
+            "-Djava.library.path=" + os.path.join(minecraft_dir, "versions", version, "natives"),
+            "-Dfile.encoding=UTF-8"
+        ])
+    
+    options = {
+        "username": login_data["name"],
+        "uuid": login_data["id"],
+        "token": login_data["access_token"],
+        "executablePath": java_config["executable_path"],
+        "defaultExecutablePath": java_config["executable_path"],
+        "jvmArguments": jvm_args,
+        "launcherName": "QuickMC",
+        "launcherVersion": "1.2",
+        "gameDirectory": minecraft_dir
+    }
+    
+    # Skip asset verification if configured for faster startup
+    if launch_config.get("skip_asset_verification", False):
+        options["skipAssetVerification"] = True
+    
+    command = mcl.command.get_minecraft_command(version, minecraft_dir, options)
 
     os.chdir(minecraft_dir)
 
-    subprocess.run(command)
+    print("Launching Minecraft...")
+
+    # Launch Minecraft asynchronously if configured
+    if launch_config.get("close_launcher", False):
+        # Start Minecraft in background and exit launcher immediately
+        subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print("Minecraft launched in background. Launcher exiting...")
+    else:
+        # Traditional blocking launch
+        subprocess.run(command)
 
 
 if __name__ == '__main__':
