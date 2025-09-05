@@ -1,5 +1,5 @@
 # Build
-py -m nuitka --standalone --windows-console-mode=force \
+python -m nuitka --standalone --windows-console-mode=force \
  --product-name="QuickMC" --product-version=1.0.0 --file-description="The QuickMC launcher" \
  --copyright="Copyright © 2025 Omena0. All rights reserved." \
  --output-dir="../__build" \

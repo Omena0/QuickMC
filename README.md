@@ -10,11 +10,11 @@ Launches minecraft in under 20 seconds from initial input.
 ### Linux/macOS
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/Omena0/QuickMC/master/setup.sh | bash
+curl -sSL https://raw.githubusercontent.com/Omena0/QuickMC/refs/heads/master/setup.sh | bash
 ```
 
 ### Windows (PowerShell)
 
 ```powershell
-iwr -useb https://raw.githubusercontent.com/Omena0/QuickMC/master/setup.cmd | iex
+iwr -useb https://raw.githubusercontent.com/Omena0/QuickMC/refs/heads/master/setup.cmd | iex
 ```
