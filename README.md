@@ -3,7 +3,9 @@
 
 **THE** Fastest MC Launcher.
 
-Launches minecraft in under 20 seconds from initial input.
+Launches minecraft in under 13 seconds from initial input.
+
+(Measured from application launcher click to minecraft window appearing)
 
 ## Build & Install
 
