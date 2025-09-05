@@ -1,0 +1,5 @@
+minecraft_launcher_lib
+pywebview[gtk]  # Use GTK backend on Linux for lightweight GUI
+nuitka
+flask
+tqdm

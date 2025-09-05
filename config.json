@@ -1,0 +1,26 @@
+{
+    "minecraft_version": "1.21.4",
+    "java": {
+        "executable_path": "/usr/bin/java",
+        "memory": {
+            "min": "8G",
+            "max": "8G"
+        },
+        "jvm_arguments": [
+            "-XX:+UnlockExperimentalVMOptions",
+            "-XX:+UseG1GC",
+            "-XX:G1NewSizePercent=20",
+            "-XX:G1ReservePercent=20",
+            "-XX:MaxGCPauseMillis=50",
+            "-XX:G1HeapRegionSize=32M"
+        ]
+    },
+    "fabric": {
+        "auto_install": true,
+        "loader_version": "latest"
+    },
+    "install": {
+        "download_threads": 4,
+        "enable_progress_bar": true
+    }
+}

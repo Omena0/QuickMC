@@ -1,3 +1,0 @@
-minecraft_launcher_lib
-nuitka
-flask

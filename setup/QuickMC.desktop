@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=QuickMC
+Comment=Launch Minecraft with QuickMC
+Exec=/home/%USER%/QuickMC/launch.sh
+Icon=minecraft
+Path=/home/%USER%/QuickMC
+Terminal=false
+Categories=Game;
+StartupNotify=true
