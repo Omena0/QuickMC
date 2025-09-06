@@ -7,12 +7,31 @@
             "max": "8G"
         },
         "jvm_arguments": [
+            // Performance optimizations for faster startup
             "-XX:+UnlockExperimentalVMOptions",
             "-XX:+UseG1GC",
+            "-XX:+UseStringDeduplication",
             "-XX:G1NewSizePercent=20",
             "-XX:G1ReservePercent=20",
             "-XX:MaxGCPauseMillis=50",
-            "-XX:G1HeapRegionSize=32M"
+            "-XX:G1HeapRegionSize=32M",
+            // Fast startup optimizations
+            "-XX:+TieredCompilation",
+            "-XX:TieredStopAtLevel=1", // Faster startup, less optimization
+            "-XX:+UseFastUnorderedTimeStamps",
+            "-XX:+UseLargePages",
+            "-XX:+AlwaysPreTouch", // Allocate memory upfront
+            // Reduce verification overhead
+            "-Xverify:none",
+            // Disable JIT compiler warmup for faster startup
+            "-XX:CompileThreshold=1500",
+            // Parallel class loading
+            "-XX:+UnlockDiagnosticVMOptions",
+            "-XX:+UseParallelGC", // Faster for startup
+            // Aggressive optimization for startup
+            "-Dsun.rmi.dgc.server.gcInterval=2147483646",
+            "-Dsun.rmi.dgc.client.gcInterval=2147483646",
+            "-Djava.net.preferIPv4Stack=true"
         ]
     },
     "fabric": {
@@ -20,7 +39,14 @@
         "loader_version": "latest"
     },
     "install": {
-        "download_threads": 4,
-        "enable_progress_bar": true
+        "download_threads": 8, // Increased from 4 for faster downloads
+        "enable_progress_bar": true,
+        "skip_hash_validation": false, // Set to true for faster installs (less secure)
+        "parallel_downloads": true
+    },
+    "launch": {
+        "skip_asset_verification": false, // Set to true for faster launches
+        "preload_natives": true, // Preload native libraries
+        "close_launcher": false // Close the console window after launching
     }
 }
