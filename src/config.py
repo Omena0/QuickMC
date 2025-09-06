@@ -3,8 +3,8 @@
 import json
 import os
 from typing import Dict, Any, Optional
-from .exceptions import ConfigurationError
-from .platform_utils import PlatformConfig
+from exceptions import ConfigurationError
+from platform_utils import PlatformConfig
 
 
 class ConfigManager:

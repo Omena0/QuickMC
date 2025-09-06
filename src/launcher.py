@@ -6,8 +6,8 @@ import sys
 from typing import Dict, Any, List
 import minecraft_launcher_lib as mcl
 
-from .exceptions import LaunchError, JavaNotFoundError
-from .platform_utils import PlatformUtils
+from exceptions import LaunchError, JavaNotFoundError
+from platform_utils import PlatformUtils
 
 
 class MinecraftLauncher:

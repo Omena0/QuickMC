@@ -4,11 +4,11 @@ import os
 import sys
 from typing import Dict, Any
 
-from .config import ConfigManager
-from .auth import AuthManager
-from .installation import InstallationManager
-from .launcher import MinecraftLauncher
-from .exceptions import QuickMCError
+from config import ConfigManager
+from auth import AuthManager
+from installation import InstallationManager
+from launcher import MinecraftLauncher
+from exceptions import QuickMCError
 
 
 class QuickMCApp:

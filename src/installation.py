@@ -5,7 +5,7 @@ from typing import Dict, Any, Optional, Callable
 import minecraft_launcher_lib as mcl
 from tqdm import tqdm
 
-from .exceptions import InstallationError
+from exceptions import InstallationError
 
 
 class InstallationManager:

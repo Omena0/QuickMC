@@ -1,3 +1,5 @@
 __build
 .venv
-
+*.pyd
+*.pyc
+__pycache__

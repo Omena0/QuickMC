@@ -9,8 +9,8 @@ from typing import Dict, Any, Optional
 import minecraft_launcher_lib as mcl
 import webview
 
-from .exceptions import AuthenticationError
-from .platform_utils import WebViewManager
+from exceptions import AuthenticationError
+from platform_utils import WebViewManager
 
 
 class AuthManager:
@@ -120,7 +120,7 @@ class AuthManager:
 
     def _complete_login(self) -> Dict[str, Any]:
         """Perform complete OAuth login flow."""
-        from . import web_server  # Import here to avoid circular imports
+        import web_server  # Import here to avoid circular imports
 
         print("Performing complete login...")
         url, state, verifier = mcl.microsoft_account.get_secure_login_data(
@@ -143,7 +143,7 @@ class AuthManager:
 
     def _get_auth_code(self, url: str) -> str:
         """Get authorization code through webview or browser."""
-        from . import web_server
+        import web_server
 
         print("Opening login page...")
 
@@ -158,7 +158,7 @@ class AuthManager:
 
     def _try_webview_login(self, url: str) -> bool:
         """Try to open login in webview."""
-        from . import web_server
+        import web_server
 
         try:
             webview.create_window("Log in with Microsoft", url, width=800, height=600)
