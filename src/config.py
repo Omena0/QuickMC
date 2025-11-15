@@ -4,7 +4,7 @@ import json
 import os
 from typing import Dict, Any, Optional
 from exceptions import ConfigurationError
-from platform_utils import PlatformConfig
+from platform_utils import PlatformConfig, JavaDetector
 
 
 class ConfigManager:
@@ -34,6 +34,9 @@ class ConfigManager:
         except (FileNotFoundError, json.JSONDecodeError) as e:
             print(f"Warning: Could not load config.json from {self.config_path} ({e}), using platform defaults")
             self._config = default_config
+        
+        # Auto-detect Java if executable path is None or empty
+        self._auto_detect_java_if_needed()
         
         return self._config
     
@@ -68,6 +71,33 @@ class ConfigManager:
                 merged[key] = value
         
         return merged
+    
+    def _auto_detect_java_if_needed(self) -> None:
+        """Auto-detect Java executable if the configured path is None or empty."""
+        if not self._config:
+            return
+        
+        java_config = self._config.get("java", {})
+        executable_path = java_config.get("executable_path")
+        
+        # Check if we need to auto-detect Java
+        if executable_path is None or executable_path == "" or executable_path == "auto":
+            print("Java executable path not configured, auto-detecting...")
+            detected_java = JavaDetector.detect_java_executable()
+            
+            # Update the configuration with detected Java path
+            if "java" not in self._config:
+                self._config["java"] = {}
+            self._config["java"]["executable_path"] = detected_java
+            
+            print(f"Auto-detected Java: {detected_java}")
+            
+            # Save the updated configuration
+            try:
+                self.save_config(self._config)
+                print("Updated configuration saved with auto-detected Java path")
+            except Exception as e:
+                print(f"Warning: Could not save auto-detected Java path to config: {e}")
     
     @property
     def config(self) -> Dict[str, Any]:

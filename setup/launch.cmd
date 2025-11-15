@@ -5,10 +5,6 @@ rem This script launches QuickMC in a console window
 
 cd /d "%~dp0"
 
-echo QuickMC - Minecraft Launcher
-echo ============================
-echo.
-
 rem Launch QuickMC
 files\QuickMC.exe
 

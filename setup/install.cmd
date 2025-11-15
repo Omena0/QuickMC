@@ -39,7 +39,7 @@ powershell -Command "& { ^
     $Shortcut.TargetPath = '%USERPROFILE%\QuickMC\launch.cmd'; ^
     $Shortcut.WorkingDirectory = '%USERPROFILE%\QuickMC'; ^
     $Shortcut.IconLocation = 'shell32.dll,21'; ^
-    $Shortcut.Save() ^
+    $Shortcut.Save()^
 }"
 
 echo QuickMC installed successfully!
