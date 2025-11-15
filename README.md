@@ -18,7 +18,7 @@ curl -sSL https://raw.githubusercontent.com/Omena0/QuickMC/refs/heads/master/set
 ### Windows (PowerShell)
 
 ```powershell
-iwr -useb https://raw.githubusercontent.com/Omena0/QuickMC/refs/heads/master/setup.cmd | iex
+iwr -useb https://raw.githubusercontent.com/Omena0/QuickMC/refs/heads/master/setup.ps1 | iex
 ```
 
 ## Dev install

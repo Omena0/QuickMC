@@ -3,7 +3,7 @@
     "java": {
         "executable_path": null,
         "memory": {
-            "min": "8G",
+            "min": "2G",
             "max": "8G"
         },
         "jvm_arguments": [
