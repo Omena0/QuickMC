@@ -106,7 +106,7 @@ class JavaDetector:
                 timeout=5
             )
             return result.returncode == 0
-        except Exception:
+        except Exception:  # noqa: BLE001
             return False
 
 

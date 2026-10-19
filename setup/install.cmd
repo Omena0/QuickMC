@@ -5,17 +5,20 @@ rem QuickMC Windows Installation Script
 echo Building QuickMC for Windows...
 
 rem Build with Nuitka
-python -m nuitka --standalone --windows-console-mode=force^
-    --product-name="QuickMC" --product-version=1.0.0 --file-description="The QuickMC launcher" ^
-    --copyright="Copyright © 2025 Omena0. All rights reserved." ^
-    --output-dir="..\__build" ^
-    --include-package-data="minecraft_launcher_lib" ^
-    --deployment --python-flag="-OO" --python-flag="-S" ^
-    --assume-yes-for-downloads ^
-    --lto=yes ^
-    --jobs=16 ^
-    --output-filename="QuickMC.exe" ^
-    ..\src\main.py
+python -m nuitka --standalone --windows-console-mode=force ^
+ --product-name="QuickMC" --product-version=1.0.0 --file-description="The QuickMC launcher" ^
+ --copyright="Copyright © 2026 Omena0. All rights reserved." ^
+ --output-dir="../__build" ^
+ --include-package-data="minecraft_launcher_lib" ^
+ --deployment --python-flag="-OO" --python-flag="-S" ^
+ --assume-yes-for-downloads ^
+ --lto=yes ^
+ --pgo-c ^
+ --pgo-python ^
+ --jobs=16 ^
+ --output-filename="QuickMC" ^
+ --msvc=latest ^
+ ../src/main.py
 
 rem Create directories
 mkdir "%USERPROFILE%\QuickMC" 2>nul

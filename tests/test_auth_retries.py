@@ -1,8 +1,8 @@
-import sys
-import types
 import importlib
-import traceback
 import os
+import sys
+import traceback
+import types
 
 
 class FakeMicrosoftAccount:
@@ -59,17 +59,20 @@ def test_auth_process_with_retries():
     fake = FakeMCL()
     sys.modules['minecraft_launcher_lib'] = fake
 
-    # Ensure project root is on sys.path so `import src` works when running the
-    # test directly from tests/ with python.
+    # Ensure project root and src/ are on sys.path so `import src.auth` and its
+    # absolute imports (`from exceptions import ...`) resolve when running the
+    # test directly from tests/.
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-    if project_root not in sys.path:
-        sys.path.insert(0, project_root)
+    src_dir = os.path.join(project_root, 'src')
+    for path_entry in (project_root, src_dir):
+        if path_entry not in sys.path:
+            sys.path.insert(0, path_entry)
 
     # Now import the module under test
     try:
         import src.auth as auth_mod
         importlib.reload(auth_mod)
-    except Exception:
+    except Exception:  # noqa: BLE001
         traceback.print_exc()
         assert False, 'Failed to import src.auth'
 

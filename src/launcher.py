@@ -7,8 +7,8 @@ from typing import Any
 
 import minecraft_launcher_lib as mcl
 
-from .exceptions import JavaNotFoundError, LaunchError
-from .platform_utils import PlatformUtils
+from exceptions import JavaNotFoundError, LaunchError
+from platform_utils import JavaDetector, PlatformUtils
 
 
 class MinecraftLauncher:
@@ -28,7 +28,7 @@ class MinecraftLauncher:
             options = self._build_launch_options(version, login_data)
 
             # Get launch command
-            command = mcl.command.get_minecraft_command(version, self.minecraft_dir, options)
+            command = mcl.command.get_minecraft_command(version, self.minecraft_dir, options)  # type: ignore[arg-type]
 
             # Change to Minecraft directory
             os.chdir(self.minecraft_dir)
@@ -124,7 +124,7 @@ class MinecraftLauncher:
             # Windows: detach properly
             subprocess.Popen(
                 command,
-                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+                creationflags=getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0),
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL
             )
@@ -145,7 +145,7 @@ class MinecraftLauncher:
 
         if system == "windows":
             # Windows: handle console properly
-            creation_flags = subprocess.CREATE_NEW_CONSOLE if sys.stdout.isatty() else 0
+            creation_flags = getattr(subprocess, "CREATE_NEW_CONSOLE", 0) if sys.stdout.isatty() else 0
             subprocess.run(command, check=False, creationflags=creation_flags)
         else:
             # Unix-like systems: standard launch

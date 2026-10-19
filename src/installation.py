@@ -6,7 +6,7 @@ from typing import Any
 import minecraft_launcher_lib as mcl
 from tqdm import tqdm
 
-from .exceptions import InstallationError
+from exceptions import InstallationError
 
 
 class InstallationManager:
@@ -87,7 +87,7 @@ class InstallationManager:
                 minecraft_version,
                 self.minecraft_dir,
                 loader_version=fabric_version,
-                callback=callback,
+                callback=callback,  # type: ignore[arg-type]
             )
 
             if self._progress_bar:

@@ -4,15 +4,19 @@
 # This script installs only the necessary runtime files for QuickMC
 # It does NOT copy the entire repository - only the compiled executable and required files
 
+source ../.venv/bin/activate
+
 # Build
-python -m nuitka --standalone --windows-console-mode=force \
+CC=gcc python -m nuitka --standalone --windows-console-mode=force \
  --product-name="QuickMC" --product-version=1.0.0 --file-description="The QuickMC launcher" \
- --copyright="Copyright © 2025 Omena0. All rights reserved." \
+ --copyright="Copyright © 2026 Omena0. All rights reserved." \
  --output-dir="../__build" \
  --include-package-data="minecraft_launcher_lib" \
  --deployment --python-flag="-OO" --python-flag="-S" \
  --assume-yes-for-downloads \
  --lto=yes \
+ --pgo-c \
+ --pgo-python \
  --jobs=16 \
  --output-filename="QuickMC" \
  ../src/main.py

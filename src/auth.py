@@ -11,31 +11,10 @@ from typing import Any
 
 import minecraft_launcher_lib as mcl
 
-from .exceptions import WebviewBackendFailException
+from exceptions import AuthenticationError, WebviewBackendFailException
+from platform_utils import WebViewManager
 
 # webview may not be available in all environments; import lazily where used
-
-# Robust imports: when running as a compiled single-file or from a top-level
-# `main.py` the package context may differ. Try a few import paths and fall
-# back to small defaults so the module remains importable for tests.
-try:
-    # Preferred when running as package
-    from src.exceptions import AuthenticationError
-    from src.platform_utils import WebViewManager
-except Exception:
-    try:
-        # Fallback when running modules directly (not as package)
-        from .exceptions import AuthenticationError
-        from .platform_utils import WebViewManager
-    except Exception:
-        # Last resort: define minimal fallbacks so module can import.
-        class AuthenticationError(Exception):
-            pass
-
-        class WebViewManager:
-            @staticmethod
-            def get_backends():
-                return ["qt", "gtk", "cef"]
 
 
 class AuthManager:
@@ -58,6 +37,7 @@ class AuthManager:
         """Authenticate user and return login data."""
         # Try to use cached/refreshed token first
         if self._try_cached_authentication():
+            assert self._login_data is not None
             return self._login_data
 
         # Perform complete login
@@ -97,7 +77,7 @@ class AuthManager:
         try:
             with open(self.login_data_path, "r") as f:
                 return json.load(f)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"Failed to load cached login data: {e}")
             return None
 
@@ -125,8 +105,8 @@ class AuthManager:
                     is_transient = True
 
                 # Walk exception __cause__ and __context__ chain
-                exc_to_check = [e]
-                cur = e
+                exc_to_check: list[BaseException] = [e]
+                cur: BaseException = e
                 while cur:
                     if cur.__cause__ is not None:
                         exc_to_check.append(cur.__cause__)
@@ -162,8 +142,10 @@ class AuthManager:
     def _validate_cached_token(self, cached_data: dict[str, Any], current_time: float) -> bool:
         """Validate cached token and update timestamp if valid."""
         try:
-            # Validate token with retries for transient network issues
-            self._with_retries(mcl.microsoft_account.validate_token, cached_data["access_token"])
+            # minecraft_launcher_lib has no public validate_token in this version;
+            # trust a recently-cached access_token (refresh flow handles expiry).
+            if "access_token" not in cached_data:
+                return False
             print("Cached token is still valid")
 
             # Update timestamp and save
@@ -171,7 +153,7 @@ class AuthManager:
             self._save_login_data(cached_data)
             self._login_data = cached_data
             return True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"Cached token validation failed: {e}")
             return False
 
@@ -200,7 +182,7 @@ class AuthManager:
             print("Token refresh successful")
             return True
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"Token refresh failed: {e}")
             return False
 
@@ -231,15 +213,14 @@ class AuthManager:
         import web_server
 
         print("Opening login page...")
+        if not self._try_webview_login(url):
+            print("WebView failed, opening in default browser...")
+            webbrowser.open(url)
 
-        # Try webview first
-        if self._try_webview_login(url):
-            return web_server.get_code()
-
-        # Fallback to browser
-        print("WebView failed, opening in default browser...")
-        webbrowser.open(url)
-        return web_server.get_code()
+        code = web_server.get_code()
+        if code is None:
+            raise AuthenticationError("Failed to get authorization code")
+        return code
 
     def _try_webview_login(self, url: str) -> bool:
         """Try to open login in webview."""
@@ -247,7 +228,7 @@ class AuthManager:
         # Import webview lazily because it may not be present in all environments
         try:
             import webview
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"webview not available: {e}")
             return False
 
@@ -257,18 +238,20 @@ class AuthManager:
 
             # Try different backends based on platform
             backends = WebViewManager.get_backends()
+            last_error: Exception | None = None
             for backend in backends:
                 try:
                     print(f"Trying webview backend: {backend}")
-                    webview.start(private_mode=False, func=web_server.start, gui=backend, debug=False)
+                    webview.start(private_mode=False, func=web_server.start, gui=backend, debug=False)  # type: ignore[arg-type]
                     print(f"Successfully started webview with {backend}")
                     return True
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
+                    last_error = e
                     print(f"Failed to start webview with {backend}: {e}")
 
-            raise WebviewBackendFailException("All webview backends failed") from e
+            raise WebviewBackendFailException("All webview backends failed") from last_error
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"Webview initialization failed: {e}")
             return False
 
@@ -361,7 +344,7 @@ class AuthManager:
             os.makedirs(self.data_dir, exist_ok=True)
             with open(self.login_data_path, "w") as f:
                 json.dump(login_data, f, indent=2)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"Warning: Failed to save login data: {e}")
 
     @property

@@ -4,8 +4,8 @@ import json
 import os
 from typing import Any
 
-from .exceptions import ConfigurationError
-from .platform_utils import PlatformConfig
+from exceptions import ConfigurationError
+from platform_utils import PlatformConfig
 
 
 class ConfigManager:

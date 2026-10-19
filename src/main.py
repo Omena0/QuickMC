@@ -5,7 +5,7 @@ QuickMC - A simplified Minecraft launcher
 This is the main entry point for the QuickMC launcher application.
 """
 
-from .app import QuickMCApp
+from app import QuickMCApp
 
 # Configuration constants
 DEBUG_OAUTH = False

@@ -4,11 +4,11 @@ import os
 import sys
 from typing import Any
 
-from .auth import AuthManager
-from .config import ConfigManager
-from .exceptions import QuickMCError
-from .installation import InstallationManager
-from .launcher import MinecraftLauncher
+from auth import AuthManager
+from config import ConfigManager
+from exceptions import QuickMCError
+from installation import InstallationManager
+from launcher import MinecraftLauncher
 
 
 class QuickMCApp:
@@ -65,7 +65,7 @@ class QuickMCApp:
             if sys.stdout.isatty():
                 input("Press Enter to exit...")
             sys.exit(1)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"\nUnexpected Error: {e}")
             if sys.stdout.isatty():
                 input("Press Enter to exit...")
