@@ -15,6 +15,7 @@ python -m nuitka --standalone --windows-console-mode=force ^
  --lto=yes ^
  --pgo-c ^
  --pgo-python ^
+ --target-arch=x86-64-v3 ^
  --jobs=16 ^
  --output-filename="QuickMC" ^
  --msvc=latest ^
