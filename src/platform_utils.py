@@ -1,10 +1,10 @@
 """Platform-specific utilities and configurations."""
 
 import os
+import platform
 import shutil
 import subprocess
-import platform
-from typing import List, Dict, Any
+from typing import Any
 
 
 class PlatformUtils:
@@ -39,30 +39,22 @@ class JavaDetector:
         """Detect Java executable path across platforms."""
         system = PlatformUtils.get_system()
         java_paths = JavaDetector._get_java_paths_for_platform(system)
-        
-        # Find the first working Java executable
-        for java_path in java_paths:
-            if JavaDetector._is_valid_java(java_path):
-                return java_path
-        
-        # Fallback to 'java' if nothing else works
-        return "java"
+
+        return next(
+            (
+                java_path
+                for java_path in java_paths
+                if JavaDetector._is_valid_java(java_path)
+            ),
+            "java",
+        )
     
     @staticmethod
-    def _get_java_paths_for_platform(system: str) -> List[str]:
+    def _get_java_paths_for_platform(system: str) -> list[str]:
         """Get platform-specific Java paths to check."""
         java_home_path = os.path.join(os.environ.get("JAVA_HOME", ""), "bin", "java")
-        
-        if system == "windows":
-            return [
-                "java",  # Try PATH first
-                "C:\\Program Files\\Java\\jre\\bin\\java.exe",
-                "C:\\Program Files\\Java\\jdk\\bin\\java.exe",
-                "C:\\Program Files (x86)\\Java\\jre\\bin\\java.exe",
-                "C:\\Program Files (x86)\\Java\\jdk\\bin\\java.exe",
-                java_home_path + ".exe"
-            ]
-        elif system == "darwin":  # macOS
+
+        if system == "darwin":
             return [
                 "java",  # Try PATH first
                 "/usr/bin/java",
@@ -70,7 +62,16 @@ class JavaDetector:
                 "/Library/Java/JavaVirtualMachines/*/Contents/Home/bin/java",
                 java_home_path
             ]
-        else:  # Linux and other Unix-like systems
+        elif system == "windows":
+            return [
+                "java",
+                "C:\\Program Files\\Java\\jre\\bin\\java.exe",
+                "C:\\Program Files\\Java\\jdk\\bin\\java.exe",
+                "C:\\Program Files (x86)\\Java\\jre\\bin\\java.exe",
+                "C:\\Program Files (x86)\\Java\\jdk\\bin\\java.exe",
+                f"{java_home_path}.exe",
+            ]
+        else:
             return [
                 "java",  # Try PATH first
                 "/usr/bin/java",
@@ -86,19 +87,19 @@ class JavaDetector:
         """Check if a Java path is valid and working."""
         if not java_path:
             return False
-        
+
         # Check if executable exists
         if os.path.isabs(java_path):
             if not os.path.isfile(java_path):
                 return False
-        else:
-            if not shutil.which(java_path):
-                return False
-        
+        elif not shutil.which(java_path):
+            return False
+
         # Test if Java actually works
         try:
             result = subprocess.run(
                 [java_path, "-version"],
+                check=False,
                 capture_output=True,
                 text=True,
                 stderr=subprocess.STDOUT,
@@ -113,7 +114,7 @@ class PlatformConfig:
     """Platform-specific configuration provider."""
     
     @staticmethod
-    def get_default_config() -> Dict[str, Any]:
+    def get_default_config() -> dict[str, Any]:
         """Get platform-specific default configuration."""
         base_config = PlatformConfig._get_base_config()
         system = PlatformUtils.get_system()
@@ -129,7 +130,7 @@ class PlatformConfig:
         return base_config
     
     @staticmethod
-    def _get_base_config() -> Dict[str, Any]:
+    def _get_base_config() -> dict[str, Any]:
         """Get base configuration that works on all platforms."""
         return {
             "minecraft_version": "1.21.4",
@@ -169,7 +170,7 @@ class PlatformConfig:
         }
     
     @staticmethod
-    def _apply_windows_config(config: Dict[str, Any]) -> None:
+    def _apply_windows_config(config: dict[str, Any]) -> None:
         """Apply Windows-specific configuration."""
         config["java"]["jvm_arguments"].extend([
             "-XX:+UseLargePages",
@@ -179,7 +180,7 @@ class PlatformConfig:
         config["install"]["download_threads"] = 8
     
     @staticmethod
-    def _apply_macos_config(config: Dict[str, Any]) -> None:
+    def _apply_macos_config(config: dict[str, Any]) -> None:
         """Apply macOS-specific configuration."""
         config["java"]["jvm_arguments"].extend([
             "-XstartOnFirstThread",
@@ -187,7 +188,7 @@ class PlatformConfig:
         ])
     
     @staticmethod
-    def _apply_linux_config(config: Dict[str, Any]) -> None:
+    def _apply_linux_config(config: dict[str, Any]) -> None:
         """Apply Linux-specific configuration."""
         config["java"]["jvm_arguments"].extend([
             "-XX:+AlwaysPreTouch",
@@ -200,7 +201,7 @@ class WebViewManager:
     """Manages platform-specific webview backend selection."""
     
     @staticmethod
-    def get_backends() -> List[str]:
+    def get_backends() -> list[str]:
         """Get preferred webview backends for the current platform."""
         system = PlatformUtils.get_system()
         

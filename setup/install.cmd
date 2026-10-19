@@ -5,7 +5,7 @@ rem QuickMC Windows Installation Script
 echo Building QuickMC for Windows...
 
 rem Build with Nuitka
-python -m nuitka --standalone --windows-console-mode=force ^
+python -m nuitka --standalone --windows-console-mode=force^
     --product-name="QuickMC" --product-version=1.0.0 --file-description="The QuickMC launcher" ^
     --copyright="Copyright © 2025 Omena0. All rights reserved." ^
     --output-dir="..\__build" ^
@@ -26,8 +26,12 @@ mkdir "%USERPROFILE%\QuickMC\.minecraft" 2>nul
 rem Copy files
 xcopy "..\__build\main.dist\*" "%USERPROFILE%\QuickMC\files\" /E /I /Y
 
-rem Copy config
-copy "..\config.json" "%USERPROFILE%\QuickMC\data\"
+rem Copy config only if it doesn't already exist
+if not exist "%USERPROFILE%\QuickMC\data\config.json" (
+    copy "..\config.json" "%USERPROFILE%\QuickMC\data\"
+) else (
+    echo Not overwriting existing config.json in %USERPROFILE%\QuickMC\data\
+)
 
 rem Copy launcher
 copy "launch.cmd" "%USERPROFILE%\QuickMC\"

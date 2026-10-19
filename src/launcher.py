@@ -3,21 +3,22 @@
 import os
 import subprocess
 import sys
-from typing import Dict, Any, List
+from typing import Any
+
 import minecraft_launcher_lib as mcl
 
-from exceptions import LaunchError, JavaNotFoundError
-from platform_utils import PlatformUtils
+from .exceptions import JavaNotFoundError, LaunchError
+from .platform_utils import PlatformUtils
 
 
 class MinecraftLauncher:
     """Handles launching Minecraft with the specified configuration."""
 
-    def __init__(self, minecraft_dir: str, config: Dict[str, Any]):
+    def __init__(self, minecraft_dir: str, config: dict[str, Any]):
         self.minecraft_dir = minecraft_dir
         self.config = config
 
-    def launch(self, version: str, login_data: Dict[str, Any]) -> None:
+    def launch(self, version: str, login_data: dict[str, Any]) -> None:
         """Launch Minecraft with the specified version and login data."""
         try:
             # Build launch options
@@ -46,7 +47,7 @@ class MinecraftLauncher:
         except Exception as e:
             raise LaunchError(f"Failed to launch Minecraft: {e}") from e
 
-    def _build_launch_options(self, version: str, login_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _build_launch_options(self, version: str, login_data: dict[str, Any]) -> dict[str, Any]:
         """Build launch options from configuration and login data."""
         java_config = self.config["java"]
         launch_config = self.config.get("launch", {})
@@ -72,7 +73,7 @@ class MinecraftLauncher:
 
         return options
 
-    def _build_jvm_arguments(self, version: str, java_config: Dict[str, Any], launch_config: Dict[str, Any]) -> List[str]:
+    def _build_jvm_arguments(self, version: str, java_config: dict[str, Any], launch_config: dict[str, Any]) -> list[str]:
         """Build JVM arguments from configuration."""
         jvm_args = [
             f"-Xms{java_config['memory']['min']}",
@@ -92,7 +93,7 @@ class MinecraftLauncher:
 
         return jvm_args
 
-    def _launch_detached(self, command: List[str]) -> None:
+    def _launch_detached(self, command: list[str]) -> None:
         """Launch Minecraft in background and exit launcher immediately."""
         system = PlatformUtils.get_system()
 
@@ -115,14 +116,14 @@ class MinecraftLauncher:
 
         print("Minecraft launched in background. Launcher exiting...")
 
-    def _launch_blocking(self, command: List[str]) -> None:
+    def _launch_blocking(self, command: list[str]) -> None:
         """Launch Minecraft and wait for it to complete."""
         system = PlatformUtils.get_system()
 
         if system == "windows":
             # Windows: handle console properly
             creation_flags = subprocess.CREATE_NEW_CONSOLE if sys.stdout.isatty() else 0
-            subprocess.run(command, creationflags=creation_flags)
+            subprocess.run(command, check=False, creationflags=creation_flags)
         else:
             # Unix-like systems: standard launch
-            subprocess.run(command)
+            subprocess.run(command, check=False)

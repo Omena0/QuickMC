@@ -31,8 +31,12 @@ rm -f ~/QuickMC/files/*.pyc 2>/dev/null || true
 rm -rf ~/QuickMC/files/__pycache__ 2>/dev/null || true
 rm -rf ~/QuickMC/files/.git* 2>/dev/null || true
 
-# Copy config
-cp ../config.json ~/QuickMC/data/
+# Copy config only if it doesn't already exist
+if [ ! -f ~/QuickMC/data/config.json ]; then
+	cp ../config.json ~/QuickMC/data/
+else
+	echo "Not overwriting existing config.json in ~/QuickMC/data/"
+fi
 
 # Copy console launcher
 cp launch.sh ~/QuickMC/

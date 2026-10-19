@@ -1,11 +1,11 @@
 """Web server for handling OAuth callbacks."""
 
 from threading import Thread
-from typing import Optional
+
 import flask
 
 app = flask.Flask(__name__)
-_auth_code: Optional[str] = None
+_auth_code: str | None = None
 
 
 def shutdown():
@@ -43,7 +43,7 @@ def start():
     app.run(port=8000, host='127.0.0.1', debug=False, use_reloader=False)
 
 
-def get_code() -> Optional[str]:
+def get_code() -> str | None:
     """Get the captured authorization code."""
     return _auth_code
 

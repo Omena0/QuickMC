@@ -2,19 +2,19 @@
 
 import os
 import sys
-from typing import Dict, Any
+from typing import Any
 
-from config import ConfigManager
-from auth import AuthManager
-from installation import InstallationManager
-from launcher import MinecraftLauncher
-from exceptions import QuickMCError
+from .auth import AuthManager
+from .config import ConfigManager
+from .exceptions import QuickMCError
+from .installation import InstallationManager
+from .launcher import MinecraftLauncher
 
 
 class QuickMCApp:
     """Main QuickMC application class."""
 
-    def __init__(self, install_dir: str = None, debug_oauth: bool = False):
+    def __init__(self, install_dir: str | None = None, debug_oauth: bool = False):
         # Set up directories
         self.install_dir = install_dir or os.path.join(os.path.expanduser("~"), "QuickMC")
         self.minecraft_dir = os.path.join(self.install_dir, ".minecraft")
@@ -71,11 +71,11 @@ class QuickMCApp:
                 input("Press Enter to exit...")
             sys.exit(1)
 
-    def get_config(self) -> Dict[str, Any]:
+    def get_config(self) -> dict[str, Any]:
         """Get current configuration."""
         return self.config.copy()
 
-    def update_config(self, new_config: Dict[str, Any]) -> None:
+    def update_config(self, new_config: dict[str, Any]) -> None:
         """Update configuration."""
         self.config = new_config
         self.config_manager.save_config(new_config)

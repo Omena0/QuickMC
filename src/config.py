@@ -2,9 +2,10 @@
 
 import json
 import os
-from typing import Dict, Any, Optional
-from exceptions import ConfigurationError
-from platform_utils import PlatformConfig
+from typing import Any
+
+from .exceptions import ConfigurationError
+from .platform_utils import PlatformConfig
 
 
 class ConfigManager:
@@ -13,9 +14,9 @@ class ConfigManager:
     def __init__(self, data_dir: str):
         self.data_dir = data_dir
         self.config_path = os.path.join(data_dir, "config.json")
-        self._config: Optional[Dict[str, Any]] = None
+        self._config: dict[str, Any] | None = None
     
-    def load_config(self) -> Dict[str, Any]:
+    def load_config(self) -> dict[str, Any]:
         """Load configuration from file with platform-aware fallback defaults."""
         if self._config is not None:
             return self._config
@@ -37,7 +38,7 @@ class ConfigManager:
         
         return self._config
     
-    def save_config(self, config: Dict[str, Any]) -> None:
+    def save_config(self, config: dict[str, Any]) -> None:
         """Save configuration to file."""
         try:
             os.makedirs(self.data_dir, exist_ok=True)
@@ -47,7 +48,7 @@ class ConfigManager:
         except Exception as e:
             raise ConfigurationError(f"Failed to save config: {e}") from e
     
-    def _load_user_config(self) -> Optional[Dict[str, Any]]:
+    def _load_user_config(self) -> dict[str, Any] | None:
         """Load user configuration from file."""
         if not os.path.exists(self.config_path):
             return None
@@ -55,7 +56,7 @@ class ConfigManager:
         with open(self.config_path, "r") as f:
             return json.load(f)
     
-    def _merge_configs(self, default: Dict[str, Any], user: Dict[str, Any]) -> Dict[str, Any]:
+    def _merge_configs(self, default: dict[str, Any], user: dict[str, Any]) -> dict[str, Any]:
         """Recursively merge user config with defaults."""
         if not isinstance(default, dict) or not isinstance(user, dict):
             return user
@@ -70,6 +71,6 @@ class ConfigManager:
         return merged
     
     @property
-    def config(self) -> Dict[str, Any]:
+    def config(self) -> dict[str, Any]:
         """Get the current configuration."""
         return self.load_config() if self._config is None else self._config

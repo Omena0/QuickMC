@@ -2,12 +2,8 @@
     "minecraft_version": "1.21.4",
     "java": {
         "executable_path": "/usr/bin/java",
-        "memory": {
-            "min": "8G",
-            "max": "8G"
-        },
+        "memory": { "min": "8G", "max": "8G" },
         "jvm_arguments": [
-            // Performance optimizations for faster startup
             "-XX:+UnlockExperimentalVMOptions",
             "-XX:+UseG1GC",
             "-XX:+UseStringDeduplication",
@@ -15,38 +11,26 @@
             "-XX:G1ReservePercent=20",
             "-XX:MaxGCPauseMillis=50",
             "-XX:G1HeapRegionSize=32M",
-            // Fast startup optimizations
             "-XX:+TieredCompilation",
-            "-XX:TieredStopAtLevel=1", // Faster startup, less optimization
+            "-XX:TieredStopAtLevel=1",
             "-XX:+UseFastUnorderedTimeStamps",
             "-XX:+UseLargePages",
-            "-XX:+AlwaysPreTouch", // Allocate memory upfront
-            // Reduce verification overhead
+            "-XX:+AlwaysPreTouch",
             "-Xverify:none",
-            // Disable JIT compiler warmup for faster startup
             "-XX:CompileThreshold=1500",
-            // Parallel class loading
             "-XX:+UnlockDiagnosticVMOptions",
-            "-XX:+UseParallelGC", // Faster for startup
-            // Aggressive optimization for startup
+            "-XX:+UseParallelGC",
             "-Dsun.rmi.dgc.server.gcInterval=2147483646",
             "-Dsun.rmi.dgc.client.gcInterval=2147483646",
             "-Djava.net.preferIPv4Stack=true"
         ]
     },
-    "fabric": {
-        "auto_install": true,
-        "loader_version": "latest"
-    },
+    "fabric": { "auto_install": true, "loader_version": "latest" },
     "install": {
-        "download_threads": 8, // Increased from 4 for faster downloads
+        "download_threads": 8,
         "enable_progress_bar": true,
-        "skip_hash_validation": false, // Set to true for faster installs (less secure)
+        "skip_hash_validation": false,
         "parallel_downloads": true
     },
-    "launch": {
-        "skip_asset_verification": false, // Set to true for faster launches
-        "preload_natives": true, // Preload native libraries
-        "close_launcher": false // Close the console window after launching
-    }
+    "launch": { "skip_asset_verification": false, "preload_natives": true, "close_launcher": false }
 }
