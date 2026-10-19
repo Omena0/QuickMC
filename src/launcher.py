@@ -21,6 +21,9 @@ class MinecraftLauncher:
     def launch(self, version: str, login_data: dict[str, Any]) -> None:
         """Launch Minecraft with the specified version and login data."""
         try:
+            # Validate and potentially auto-detect Java executable
+            self._ensure_java_executable()
+            
             # Build launch options
             options = self._build_launch_options(version, login_data)
 
@@ -46,6 +49,26 @@ class MinecraftLauncher:
             ) from e
         except Exception as e:
             raise LaunchError(f"Failed to launch Minecraft: {e}") from e
+    
+    def _ensure_java_executable(self) -> None:
+        """Ensure Java executable is valid, auto-detect if necessary."""
+        java_path = self.config["java"]["executable_path"]
+        
+        # Check if Java path needs auto-detection
+        if not java_path or java_path == "auto":
+            print("Java executable not configured, auto-detecting...")
+            java_path = JavaDetector.detect_java_executable()
+            self.config["java"]["executable_path"] = java_path
+            print(f"Auto-detected Java: {java_path}")
+            return
+        
+        # Verify the configured Java path is valid
+        if not JavaDetector._is_valid_java(java_path):
+            print(f"Configured Java path is invalid: {java_path}")
+            print("Auto-detecting a working Java installation...")
+            java_path = JavaDetector.detect_java_executable()
+            self.config["java"]["executable_path"] = java_path
+            print(f"Auto-detected Java: {java_path}")
 
     def _build_launch_options(self, version: str, login_data: dict[str, Any]) -> dict[str, Any]:
         """Build launch options from configuration and login data."""
